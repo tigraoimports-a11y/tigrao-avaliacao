@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tigrão Imports - Avaliação de Troca</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --orange: #FF6B00;
+    --orange-dark: #cc5500;
+    --orange-glow: rgba(255,107,0,0.18);
+    --bg: #0a0a0a;
+    --card: #141414;
+    --card2: #1c1c1c;
+    --border: rgba(255,255,255,0.08);
+    --text: #f0f0f0;
+    --muted: #888;
+    --green: #34c759;
+    --red: #ff3b30;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* HEADER */
+  .header {
+    width: 100%;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a0a00 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(20px);
+  }
+  .header-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--orange);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+    box-shadow: 0 0 16px var(--orange-glow);
+  }
+  .header-info h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .header-info p {
+    font-size: 12px;
+    color: var(--green);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .online-dot {
+    width: 7px; height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* CHAT CONTAINER */
+  .chat-wrap {
+    width: 100%;
+    max-width: 540px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 0 120px 0;
+  }
+
+  .messages {
+    flex: 1;
+    padding: 20px 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* BOT MESSAGE */
+  .msg-bot {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    animation: slideIn 0.3s ease;
+  }
+  .bot-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--orange);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-bottom: 2px;
+  }
+  .bubble-bot {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 18px 18px 18px 4px;
+    padding: 12px 15px;
+    font-size: 14px;
+    line-height: 1.5;
+    max-width: 80%;
+    color: var(--text);
+  }
+  .bubble-bot strong { color: var(--orange); }
+
+  /* USER MESSAGE */
+  .msg-user {
+    display: flex;
+    justify-content: flex-end;
+    animation: slideIn 0.3s ease;
+  }
+  .bubble-user {
+    background: var(--orange);
+    color: #fff;
+    border-radius: 18px 18px 4px 18px;
+    padding: 11px 15px;
+    font-size: 14px;
+    font-weight: 500;
+    max-width: 75%;
+  }
+
+  /* CHOICES */
+  .choices {
+    padding: 8px 16px 8px 52px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    animation: slideIn 0.35s ease;
+  }
+  .choice-btn {
+    background: transparent;
+    border: 1.5px solid var(--orange);
+    color: var(--orange);
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .choice-btn:hover, .choice-btn:active {
+    background: var(--orange);
+    color: #fff;
+    transform: scale(1.03);
+    box-shadow: 0 4px 16px var(--orange-glow);
+  }
+
+  /* INPUT */
+  .input-area {
+    position: fixed;
+    bottom: 0;
+    left: 0; right: 0;
+    background: linear-gradient(to top, var(--bg) 70%, transparent);
+    padding: 12px 16px 20px;
+    display: flex;
+    gap: 8px;
+    max-width: 540px;
+    margin: 0 auto;
+    width: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .text-input {
+    flex: 1;
+    background: var(--card2);
+    border: 1.5px solid var(--border);
+    border-radius: 24px;
+    padding: 12px 16px;
+    font-size: 14px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: border 0.2s;
+  }
+  .text-input:focus { border-color: var(--orange); }
+  .text-input::placeholder { color: var(--muted); }
+  .send-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--orange);
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px var(--orange-glow);
+  }
+  .send-btn:hover { background: var(--orange-dark); transform: scale(1.05); }
+  .send-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+  /* TYPING */
+  .typing {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 14px;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 18px 18px 18px 4px;
+    width: fit-content;
+  }
+  .typing span {
+    width: 6px; height: 6px;
+    background: var(--muted);
+    border-radius: 50%;
+    animation: bounce 1.2s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%,80%,100% { transform: translateY(0); }
+    40% { transform: translateY(-6px); }
+  }
+
+  /* RESULT CARD */
+  .result-card {
+    background: linear-gradient(135deg, #1a0e00, #0f0f0f);
+    border: 1.5px solid var(--orange);
+    border-radius: 20px;
+    padding: 20px;
+    margin: 8px 0;
+    animation: slideIn 0.4s ease;
+    box-shadow: 0 0 30px rgba(255,107,0,0.1);
+  }
+  .result-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--orange);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+  }
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-row span:first-child { color: var(--muted); }
+  .result-row span:last-child { font-weight: 600; color: var(--text); }
+  .result-big {
+    text-align: center;
+    margin: 16px 0 8px;
+  }
+  .result-big .label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .result-big .value {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--orange);
+  }
+  .payment-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .payment-item {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 10px 6px;
+    text-align: center;
+  }
+  .payment-item .plab { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+  .payment-item .pval { font-size: 14px; font-weight: 700; color: var(--text); }
+
+  /* ACTION BUTTONS */
+  .action-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .wa-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #25D366;
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    padding: 14px 20px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Syne', sans-serif;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(37,211,102,0.25);
+  }
+  .wa-btn:hover { background: #1ebe5d; transform: translateY(-1px); }
+  .wa-icon { font-size: 20px; }
+  .sair-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: transparent;
+    color: var(--muted);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Syne', sans-serif;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+  }
+  .sair-btn:hover { border-color: var(--red); color: var(--red); background: rgba(255,59,48,0.06); }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .bloqueado {
+    background: rgba(255,59,48,0.1);
+    border: 1px solid rgba(255,59,48,0.3);
+    border-radius: 14px;
+    padding: 14px;
+    font-size: 13px;
+    color: #ff6b6b;
+    text-align: center;
+    line-height: 1.5;
+    margin: 4px 0;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-avatar">🐯</div>
+  <div class="header-info">
+    <h1>Tigrão Imports</h1>
+    <p><span class="online-dot"></span> online agora</p>
+  </div>
+</div>
+
+<div class="chat-wrap">
+  <div class="messages" id="messages"></div>
+</div>
+
+<div class="input-area" id="inputArea" style="display:none;">
+  <input class="text-input" id="textInput" type="text" placeholder="Digite aqui..." inputmode="numeric">
+  <button class="send-btn" id="sendBtn" onclick="sendText()">➤</button>
+</div>
+
+<script>
+const MODELOS_USADOS = {
+  "iPhone 11":["64GB","128GB","256GB"],
+  "iPhone 11 Pro":["64GB","256GB"],
+  "iPhone 11 Pro Max":["64GB","256GB"],
+  "iPhone 12":["64GB","128GB","256GB","512GB"],
+  "iPhone 12 Pro":["128GB","256GB","512GB"],
+  "iPhone 12 Pro Max":["128GB","256GB","512GB"],
+  "iPhone 13":["128GB","256GB","512GB"],
+  "iPhone 13 Pro":["128GB","256GB","512GB","1TB"],
+  "iPhone 13 Pro Max":["128GB","256GB","512GB","1TB"],
+  "iPhone 14":["128GB","256GB","512GB"],
+  "iPhone 14 Plus":["128GB","256GB","512GB"],
+  "iPhone 14 Pro":["128GB","256GB","512GB","1TB"],
+  "iPhone 14 Pro Max":["128GB","256GB","512GB","1TB"],
+  "iPhone 15":["128GB","256GB","512GB"],
+  "iPhone 15 Plus":["128GB","256GB","512GB"],
+  "iPhone 15 Pro":["128GB","256GB","512GB","1TB"],
+  "iPhone 15 Pro Max":["256GB","512GB","1TB"],
+  "iPhone 16":["128GB","256GB"],
+  "iPhone 16 Plus":["128GB","256GB","512GB"],
+  "iPhone 16 Pro":["128GB","256GB","512GB"],
+  "iPhone 16 Pro Max":["256GB","512GB","1TB"],
+  "iPhone 17":["256GB","512GB"],
+  "iPhone 17 Air":["256GB","512GB"],
+  "iPhone 17 Pro":["256GB","512GB","1TB"],
+  "iPhone 17 Pro Max":["256GB","512GB","1TB","2TB"]
+};
+
+// Agrupamento por linha
+const LINHAS_USADOS = {
+  "Linha 11": ["iPhone 11","iPhone 11 Pro","iPhone 11 Pro Max"],
+  "Linha 12": ["iPhone 12","iPhone 12 Pro","iPhone 12 Pro Max"],
+  "Linha 13": ["iPhone 13","iPhone 13 Pro","iPhone 13 Pro Max"],
+  "Linha 14": ["iPhone 14","iPhone 14 Plus","iPhone 14 Pro","iPhone 14 Pro Max"],
+  "Linha 15": ["iPhone 15","iPhone 15 Plus","iPhone 15 Pro","iPhone 15 Pro Max"],
+  "Linha 16": ["iPhone 16","iPhone 16 Plus","iPhone 16 Pro","iPhone 16 Pro Max"],
+  "Linha 17": ["iPhone 17","iPhone 17 Air","iPhone 17 Pro","iPhone 17 Pro Max"],
+};
+
+const LINHAS_NOVOS = {
+  "Linha 13": ["iPhone 13"],
+  "Linha 14": ["iPhone 14"],
+  "Linha 15": ["iPhone 15"],
+  "Linha 16": ["iPhone 16","iPhone 16 Plus"],
+  "Linha 17": ["iPhone 17","iPhone 17 Air","iPhone 17 Pro","iPhone 17 Pro Max"],
+};
+
+const MODELOS_NOVOS = {
+  "iPhone 13":{"128GB":{pix:3597,p12:339,p18:238,p21:209}},
+  "iPhone 14":{"128GB":{pix:3797,p12:357,p18:249,p21:220}},
+  "iPhone 15":{"128GB":{pix:4497,p12:423,p18:297,p21:261}},
+  "iPhone 16":{"128GB":{pix:4697,p12:442,p18:311,p21:273},"256GB":{pix:5197,p12:489,p18:344,p21:302}},
+  "iPhone 16 Plus":{"128GB":{pix:5297,p12:499,p18:350,p21:308}},
+  "iPhone 17":{"256GB":{pix:6297,p12:593,p18:416,p21:366}},
+  "iPhone 17 Air":{"256GB":{pix:6497,p12:612,p18:459,p21:377}},
+  "iPhone 17 Pro":{"256GB":{pix:8497,p12:800,p18:562,p21:494},"512GB":{pix:9497,p12:894,p18:628,p21:552},"1TB":{pix:10797,p12:1017,p18:714,p21:627}},
+  "iPhone 17 Pro Max":{"256GB":{pix:8997,p12:847,p18:595,p21:523},"512GB":{pix:10497,p12:988,p18:694,p21:610},"1TB":{pix:11797,p12:1111,p18:780,p21:685},"2TB":{pix:13997,p12:1318,p18:925,p21:813}}
+};
+
+const USADOS_VALS = {
+  "iPhone 11":{"64GB":700,"128GB":900,"256GB":1300},
+  "iPhone 11 Pro":{"64GB":1100,"256GB":1400},
+  "iPhone 11 Pro Max":{"64GB":1300,"256GB":1500},
+  "iPhone 12":{"64GB":1000,"128GB":1300,"256GB":1500,"512GB":1800},
+  "iPhone 12 Pro":{"128GB":1500,"256GB":1700,"512GB":1800},
+  "iPhone 12 Pro Max":{"128GB":1800,"256GB":2100,"512GB":2300},
+  "iPhone 13":{"128GB":1600,"256GB":1800,"512GB":2000},
+  "iPhone 13 Pro":{"128GB":2000,"256GB":2200,"512GB":2600,"1TB":2800},
+  "iPhone 13 Pro Max":{"128GB":2300,"256GB":2500,"512GB":2700,"1TB":3100},
+  "iPhone 14":{"128GB":1900,"256GB":2200,"512GB":2500},
+  "iPhone 14 Plus":{"128GB":2200,"256GB":2500,"512GB":2900},
+  "iPhone 14 Pro":{"128GB":2300,"256GB":2500,"512GB":2700,"1TB":3000},
+  "iPhone 14 Pro Max":{"128GB":2900,"256GB":3100,"512GB":3300,"1TB":3600},
+  "iPhone 15":{"128GB":2500,"256GB":2700,"512GB":2800},
+  "iPhone 15 Plus":{"128GB":2700,"256GB":2800,"512GB":2900},
+  "iPhone 15 Pro":{"128GB":3100,"256GB":3300,"512GB":3500,"1TB":3600},
+  "iPhone 15 Pro Max":{"256GB":3800,"512GB":4100,"1TB":4400},
+  "iPhone 16":{"128GB":3300,"256GB":3300},
+  "iPhone 16 Plus":{"128GB":3600,"256GB":3800,"512GB":4000},
+  "iPhone 16 Pro":{"128GB":4300,"256GB":4500,"512GB":5000},
+  "iPhone 16 Pro Max":{"256GB":5000,"512GB":5500,"1TB":6000},
+  "iPhone 17":{"256GB":4500,"512GB":4900},
+  "iPhone 17 Air":{"256GB":4700,"512GB":5100},
+  "iPhone 17 Pro":{"256GB":6700,"512GB":7500,"1TB":8000}
+};
+
+const BAT_DESC = {
+  "iPhone 16":{"128GB":3100},
+  "iPhone 16 Plus":{"128GB":3400,"256GB":3600,"512GB":3800},
+  "iPhone 16 Pro":{"128GB":4100,"256GB":4300,"512GB":4800},
+  "iPhone 16 Pro Max":{"256GB":4800,"512GB":5300,"1TB":5800}
+};
+
+const BLOQUEADOS = ["iPhone 6","iPhone 7","iPhone 7 Plus","iPhone 8","iPhone 8 Plus","iPhone X","iPhone XS","iPhone XS Max","iPhone 12 Mini","iPhone 13 Mini","iPhone SE"];
+
+// State
+const S = {};
+let step = 0;
+
+const WA_NUMBER = "5521995618747";
+
+const steps = [
+  // 0: boas vindas — escolha de LINHA do usado
+  () => {
+    addBot("Olá! 👋 Seja bem-vindo(a) à <strong>Tigrão Imports</strong>!\n\nSou o assistente de avaliação de troca. Vou te ajudar a descobrir quanto vale o seu iPhone na troca por um novo. 🐯\n\nPrimeiro: qual é a <strong>linha</strong> do seu iPhone atual?");
+    showChoices(Object.keys(LINHAS_USADOS), (linha) => {
+      S._linhaUsada = linha;
+      addUser(linha);
+      // próximo step: escolher variação dentro da linha
+      setTimeout(() => showTyping(() => {
+        addBot(`Qual a <strong>versão</strong> dentro da ${linha}?`);
+        showChoices(LINHAS_USADOS[linha], (modelo) => {
+          S.modeloUsado = modelo; addUser(modelo); next();
+        });
+      }), 400);
+    });
+  },
+
+  // 1: memória usado
+  () => {
+    addBot(`Qual a <strong>memória</strong> do seu ${S.modeloUsado}?`);
+    const mems = MODELOS_USADOS[S.modeloUsado] || ["64GB","128GB","256GB"];
+    showChoices(mems, (v) => { S.memoriaUsada = v; addUser(v); next(); });
+  },
+
+  // 2: comprou lacrado ou usado
+  () => {
+    addBot("Você comprou ele <strong>lacrado</strong> ou <strong>usado</strong>?");
+    showChoices(["Lacrado","Usado"], (v) => { S.tipoCompra = v; addUser(v); next(); });
+  },
+
+  // 3: bateria
+  () => {
+    addBot("Qual a <strong>saúde da bateria</strong> atual?\n\n<span style='color:#888;font-size:12px;'>📱 Ajustes → Bateria → Saúde e Carregamento</span>");
+    showInput("numeric", "Ex: 89", (v) => {
+      const n = parseInt(v);
+      if (isNaN(n) || n < 1 || n > 100) { addBot("Por favor, digite um número entre 1 e 100."); return false; }
+      S.bateria = n; addUser(v + "%"); return true;
+    });
+  },
+
+  // 4: tem marcas?
+  () => {
+    addBot("O aparelho tem <strong>marcas</strong> ou <strong>arranhões</strong>?");
+    showChoices(["Sim","Não"], (v) => {
+      S.temMarcas = v === "Sim";
+      addUser(v);
+      if (!S.temMarcas) {
+        S.riscosTela = "Nenhum"; S.ristosLateral = "Nenhum"; S.peeling = "Sem";
+      }
+      next();
+    });
+  },
+
+  // 5: arranhões tela (só se tem marcas)
+  () => {
+    if (!S.temMarcas) { S.riscosTela = "Nenhum"; next(); return; }
+    addBot("Quantos <strong>arranhões na tela</strong>?");
+    showChoices(["Nenhum","1 arranhão","2 ou mais"], (v) => {
+      S.riscosTela = v; addUser(v); next();
+    });
+  },
+
+  // 6: arranhões lateral
+  () => {
+    if (!S.temMarcas) { S.riscosLateral = "Nenhum"; next(); return; }
+    addBot("E na <strong>lateral</strong>? Tem arranhões?");
+    showChoices(["Nenhum","1 arranhão","2 ou mais"], (v) => {
+      S.riscosLateral = v; addUser(v); next();
+    });
+  },
+
+  // 7: peeling
+  () => {
+    if (!S.temMarcas) { S.peeling = "Sem"; next(); return; }
+    addBot("O acabamento está <strong>descascando</strong> (peeling)?");
+    showChoices(["Não, está íntegro","Sim, levemente","Sim, bastante"], (v) => {
+      S.peeling = v.includes("íntegro") ? "Sem" : v.includes("levemente") ? "Leve" : "Muito";
+      addUser(v); next();
+    });
+  },
+
+  // 8: defeito
+  () => {
+    addBot("O aparelho tem algum <strong>defeito de funcionamento</strong>? (câmera, tela, biometria, botões...)");
+    showChoices(["Não, funciona tudo","Sim, tem defeito"], (v) => {
+      S.defeito = v.includes("Sim");
+      addUser(S.defeito ? "Sim" : "Não"); next();
+    });
+  },
+
+  // 9: manutenção
+  () => {
+    addBot("Já fez alguma <strong>manutenção</strong> ou troca de peça?");
+    showChoices(["Não","Sim"], (v) => {
+      S.manutencao = v === "Sim"; addUser(v); next();
+    });
+  },
+
+  // 10: linha do novo desejado
+  () => {
+    addBot("Ótimo! Agora me diz: qual <strong>linha</strong> de iPhone novo você quer? 🍎");
+    showChoices(Object.keys(LINHAS_NOVOS), (linha) => {
+      S._linhaNova = linha;
+      addUser(linha);
+      const variações = LINHAS_NOVOS[linha];
+      if (variações.length === 1) {
+        S.modeloNovo = variações[0];
+        setTimeout(() => showTyping(() => steps[11]()), 400);
+      } else {
+        setTimeout(() => showTyping(() => {
+          addBot(`Qual a <strong>versão</strong> dentro da ${linha}?`);
+          showChoices(variações, (modelo) => {
+            S.modeloNovo = modelo; addUser(modelo); next();
+          });
+        }), 400);
+      }
+    });
+  },
+
+  // 11: memória novo
+  () => {
+    addBot(`Qual a <strong>memória</strong> do ${S.modeloNovo}?`);
+    const mems = Object.keys(MODELOS_NOVOS[S.modeloNovo] || {});
+    showChoices(mems, (v) => { S.memoriaNova = v; addUser(v); next(); });
+  },
+
+  // 12: nome
+  () => {
+    addBot("Quase lá! Qual é o seu <strong>nome</strong>? 😊");
+    showInput("text", "Seu nome", (v) => {
+      if (v.trim().length < 2) { addBot("Por favor, digite seu nome."); return false; }
+      S.nome = v.trim(); addUser(v.trim()); return true;
+    });
+  },
+
+  // 13: telefone
+  () => {
+    addBot("E o seu <strong>número de WhatsApp</strong>? 📱");
+    showInput("tel", "Ex: 21 99999-9999", (v) => {
+      const digits = v.replace(/\D/g, '');
+      if (digits.length < 10) { addBot("Por favor, digite um número válido com DDD."); return false; }
+      S.telefone = v.trim(); addUser(v.trim()); return true;
+    });
+  },
+
+  // 14: disponibilidade
+  () => {
+    addBot("Quando você tem <strong>disponibilidade</strong> para fazer a troca?");
+    showChoices(["Imediata","Agendada"], (v) => {
+      S.disponibilidade = v; addUser(v); next();
+    });
+  },
+
+  // 15: resultado
+  () => {
+    addBot("Perfeito! Calculando sua avaliação... ✨");
+    setTimeout(() => showResult(), 1200);
+  }
+];
+
+function next() {
+  step++;
+  setTimeout(() => {
+    if (step < steps.length) {
+      showTyping(() => steps[step]());
+    }
+  }, 400);
+}
+
+function showResult() {
+  const msgs = document.getElementById('messages');
+
+  // Verificar bloqueado
+  if (BLOQUEADOS.includes(S.modeloUsado)) {
+    addBotRaw(`<div class="bloqueado">❌ Infelizmente o <strong>${S.modeloUsado}</strong> não está na nossa lista de aparelhos aceitos para troca no momento.<br><br>Entre em contato conosco para mais informações! 💬</div>`);
+    return;
+  }
+
+  if (S.defeito) {
+    addBotRaw(`<div class="bloqueado">❌ Aparelhos com <strong>defeito de funcionamento</strong> não podem ser avaliados automaticamente.<br><br>Entre em contato conosco para avaliação personalizada! 💬</div>`);
+    return;
+  }
+
+  // Calcular
+  const baseVal = (USADOS_VALS[S.modeloUsado] || {})[S.memoriaUsada] || 0;
+  if (!baseVal) {
+    addBotRaw(`<div class="bloqueado">Não encontramos avaliação para este modelo/memória. Entre em contato conosco! 💬</div>`);
+    return;
+  }
+
+  // desconto bateria
+  let valorBase = baseVal;
+  const batModels = ["iPhone 16","iPhone 16 Plus","iPhone 16 Pro","iPhone 16 Pro Max","iPhone 17","iPhone 17 Air","iPhone 17 Pro","iPhone 17 Pro Max"];
+  if (batModels.includes(S.modeloUsado) && S.bateria < 95) {
+    const batD = (BAT_DESC[S.modeloUsado] || {})[S.memoriaUsada];
+    if (batD) valorBase = batD;
+  }
+
+  // descontos cosméticos
+  const descTela = S.riscosTela === "1 arranhão" ? -100 : S.riscosTela === "2 ou mais" ? -250 : 0;
+  const descLat  = S.riscosLateral === "1 arranhão" ? -100 : S.riscosLateral === "2 ou mais" ? -250 : 0;
+  const descPeel = S.peeling === "Leve" ? -200 : S.peeling === "Muito" ? -300 : 0;
+
+  const avaliacao = valorBase + descTela + descLat + descPeel;
+
+  const precoNovo = (MODELOS_NOVOS[S.modeloNovo] || {})[S.memoriaNova];
+  if (!precoNovo) {
+    addBotRaw(`<div class="bloqueado">Não encontramos o preço do ${S.modeloNovo} ${S.memoriaNova}. Entre em contato! 💬</div>`);
+    return;
+  }
+
+  const pixDiff = Math.round((precoNovo.pix - avaliacao) / 100) * 100 - 3;
+  const t12 = pixDiff * 1.1313;
+  const t18 = pixDiff * 1.4174;
+  const p12 = Math.ceil(t12 / 12);
+  const p18 = Math.ceil(t18 / 18);
+
+  const fmt = (n) => "R$ " + Math.round(n).toLocaleString('pt-BR');
+
+  // build result
+  const condArr = [];
+  if (S.riscosTela !== "Nenhum") condArr.push("Tela: " + S.riscosTela);
+  if (S.riscosLateral !== "Nenhum") condArr.push("Lateral: " + S.riscosLateral);
+  if (S.peeling !== "Sem") condArr.push("Peeling: " + S.peeling);
+  const condStr = condArr.length > 0 ? condArr.join(" | ") : "Sem marcas";
+
+  const html = `
+<div class="result-card">
+  <div class="result-title">📊 Resultado da Avaliação</div>
+
+  <div class="result-row"><span>Aparelho usado</span><span>${S.modeloUsado} ${S.memoriaUsada}</span></div>
+  <div class="result-row"><span>Bateria</span><span>${S.bateria}%</span></div>
+  <div class="result-row"><span>Condições</span><span style="font-size:12px;text-align:right;max-width:55%">${condStr}</span></div>
+  <div class="result-row"><span>Avaliação do seu</span><span style="color:#34c759">${fmt(avaliacao)}</span></div>
+
+  <div style="height:12px"></div>
+  <div class="result-row"><span>iPhone pretendido</span><span>${S.modeloNovo} ${S.memoriaNova}</span></div>
+
+  <div class="result-big">
+    <div class="label">Você pagaria na troca</div>
+    <div class="value">${fmt(pixDiff)} <span style="font-size:16px;color:#888">Pix</span></div>
+  </div>
+
+  <div class="payment-grid">
+    <div class="payment-item"><div class="plab">12x de</div><div class="pval">${fmt(p12)}</div></div>
+    <div class="payment-item"><div class="plab">18x de</div><div class="pval">${fmt(p18)}</div></div>
+    <div class="payment-item" style="background:rgba(255,107,0,0.1);border:1px solid rgba(255,107,0,0.2)"><div class="plab" style="color:var(--orange)">Pix</div><div class="pval" style="color:var(--orange)">${fmt(pixDiff)}</div></div>
+  </div>
+
+  <div class="action-btns">
+    <button class="wa-btn" onclick="enviarWhatsApp(${avaliacao}, ${pixDiff}, ${p12}, ${p18})">
+      <span class="wa-icon">🎉</span> Gostei da proposta! Desejo comprar.
+    </button>
+    <button class="sair-btn" onclick="window.history.back()">
+      ✖ Sair
+    </button>
+  </div>
+</div>`;
+
+  // salvar para o botão
+  S._avaliacao = avaliacao;
+  S._pixDiff = pixDiff;
+  S._p12 = p12;
+  S._p18 = p18;
+
+  addBotRaw(html);
+
+  setTimeout(() => {
+    addBot("Esses valores são uma estimativa com base nas informações fornecidas. Nossa equipe vai confirmar a avaliação final presencialmente. 🐯");
+  }, 800);
+}
+
+function enviarWhatsApp(av, pix, p12, p18) {
+  const fmt = (n) => "R$ " + Math.round(n).toLocaleString('pt-BR');
+  const condArr = [];
+  if (S.riscosTela !== "Nenhum") condArr.push("Tela: " + S.riscosTela);
+  if (S.riscosLateral !== "Nenhum") condArr.push("Lateral: " + S.riscosLateral);
+  if (S.peeling !== "Sem") condArr.push("Peeling: " + S.peeling);
+
+  const msg = `🐯 *NOVO ORÇAMENTO IPHONE*
+👤 ${S.nome}
+📞 ${S.telefone}
+
+------------------------------------
+*DETALHES APARELHO USADO*
+Modelo usado: *${S.modeloUsado}*
+Memória: *${S.memoriaUsada}*
+Bateria: *${S.bateria}%*
+Marcas: *${S.temMarcas ? "Sim" : "Não"}*${condArr.length > 0 ? "\n" + condArr.map(c => "  → " + c).join("\n") : ""}
+Defeito: *${S.defeito ? "Sim" : "Não"}*
+Manutenção: *${S.manutencao ? "Sim" : "Não"}*
+
+------------------------------------
+*APARELHO PRETENDIDO*
+Modelo: *${S.modeloNovo}*
+Memória: *${S.memoriaNova}*
+
+------------------------------------
+*AVALIAÇÃO ESTIMADA*
+Valor do usado: *${fmt(av)}*
+💰 Pix: *${fmt(pix)}*
+💳 12x de ${fmt(p12)}
+💳 18x de ${fmt(p18)}
+
+⏰ Disponibilidade: *${S.disponibilidade}*`;
+
+  const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
+  window.open(url, '_blank');
+}
+
+// ---- UI HELPERS ----
+
+function showTyping(cb) {
+  const msgs = document.getElementById('messages');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-bot';
+  wrap.id = 'typing-ind';
+  wrap.innerHTML = `<div class="bot-avatar">🐯</div><div class="typing"><span></span><span></span><span></span></div>`;
+  msgs.appendChild(wrap);
+  scrollDown();
+  setTimeout(() => {
+    wrap.remove();
+    cb();
+  }, 900);
+}
+
+function addBot(text) {
+  const msgs = document.getElementById('messages');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-bot';
+  const formatted = text.replace(/\n/g, '<br>');
+  wrap.innerHTML = `<div class="bot-avatar">🐯</div><div class="bubble-bot">${formatted}</div>`;
+  msgs.appendChild(wrap);
+  scrollDown();
+}
+
+function addBotRaw(html) {
+  const msgs = document.getElementById('messages');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-bot';
+  wrap.innerHTML = `<div class="bot-avatar">🐯</div><div style="max-width:90%;width:100%">${html}</div>`;
+  msgs.appendChild(wrap);
+  scrollDown();
+}
+
+function addUser(text) {
+  const msgs = document.getElementById('messages');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-user';
+  wrap.innerHTML = `<div class="bubble-user">${text}</div>`;
+  msgs.appendChild(wrap);
+  scrollDown();
+  clearChoices();
+  hideInput();
+}
+
+function showChoices(options, cb) {
+  const msgs = document.getElementById('messages');
+  const wrap = document.createElement('div');
+  wrap.className = 'choices';
+  wrap.id = 'choices-wrap';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = opt;
+    btn.onclick = () => {
+      wrap.remove();
+      cb(opt);
+    };
+    wrap.appendChild(btn);
+  });
+  msgs.appendChild(wrap);
+  scrollDown();
+  hideInput();
+}
+
+let inputCb = null;
+function showInput(type, placeholder, cb) {
+  inputCb = cb;
+  const area = document.getElementById('inputArea');
+  const inp = document.getElementById('textInput');
+  inp.type = type === 'numeric' ? 'tel' : 'text';
+  inp.placeholder = placeholder;
+  inp.value = '';
+  area.style.display = 'flex';
+  setTimeout(() => inp.focus(), 100);
+  clearChoices();
+}
+
+function hideInput() {
+  document.getElementById('inputArea').style.display = 'none';
+  inputCb = null;
+}
+
+function sendText() {
+  const inp = document.getElementById('textInput');
+  const val = inp.value.trim();
+  if (!val || !inputCb) return;
+  const ok = inputCb(val);
+  if (ok !== false) {
+    hideInput();
+    next();
+  }
+}
+
+document.getElementById('textInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') sendText();
+});
+
+function clearChoices() {
+  const el = document.getElementById('choices-wrap');
+  if (el) el.remove();
+}
+
+function scrollDown() {
+  setTimeout(() => {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }, 50);
+}
+
+// START
+setTimeout(() => {
+  showTyping(() => steps[0]());
+}, 600);
+</script>
+</body>
+</html>
