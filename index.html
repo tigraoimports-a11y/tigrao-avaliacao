@@ -776,30 +776,29 @@ function enviarWhatsApp(av, pix, p12, p18) {
   if (S.riscosLateral !== "Nenhum") condArr.push("Lateral: " + S.riscosLateral);
   if (S.peeling !== "Sem") condArr.push("Peeling: " + S.peeling);
 
-  const msg = `🐯 *NOVO ORÇAMENTO IPHONE*
-👤 ${S.nome}
+  const marcasStr = condArr.length > 0 ? condArr.join(" / ") : "Nenhuma";
+  const msg = `🐯 *TIGRÃO IMPORTS — ORÇAMENTO*
+
+👤 *${S.nome}*
 📞 ${S.telefone}
 
-------------------------------------
-*DETALHES APARELHO USADO*
-Modelo usado: *${S.modeloUsado}*
-Memória: *${S.memoriaUsada}*
+━━━━━━━━━━━━━━━━━━━━
+📱 *APARELHO USADO*
+Modelo: *${S.modeloUsado} ${S.memoriaUsada}*
 Bateria: *${S.bateria}%*
-Marcas: *${S.temMarcas ? "Sim" : "Não"}*${condArr.length > 0 ? "\n" + condArr.map(c => "  → " + c).join("\n") : ""}
-Defeito: *${S.defeito ? "Sim" : "Não"}*
-Manutenção: *${S.manutencao ? "Sim" : "Não"}*
+Marcas: ${marcasStr}
 
-------------------------------------
-*APARELHO PRETENDIDO*
-Modelo: *${S.modeloNovo}*
-Memória: *${S.memoriaNova}*
+━━━━━━━━━━━━━━━━━━━━
+✨ *APARELHO PRETENDIDO*
+*${S.modeloNovo} ${S.memoriaNova}*
 
-------------------------------------
-*AVALIAÇÃO ESTIMADA*
-Valor do usado: *${fmt(av)}*
-💰 Pix: *${fmt(pix)}*
-💳 12x de ${fmt(p12)}
-💳 18x de ${fmt(p18)}
+━━━━━━━━━━━━━━━━━━━━
+💰 *AVALIAÇÃO*
+Seu usado vale: *${fmt(av)}*
+
+Pix: *${fmt(pix)}*
+12x de *${fmt(p12)}*
+18x de *${fmt(p18)}*
 
 ⏰ Disponibilidade: *${S.disponibilidade}*`;
 
